@@ -64,6 +64,12 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     camera.universal3470 \
     camera.vendor.universal3470 \
+    android.hardware.camera.provider@2.4-impl \
+    android.hardware.camera.provider@2.4-service.universal3470 \
+    camera.device@1.0-impl \
+    camera.device@3.2-impl \
+    camera.device@3.3-impl \
+    camera.device@3.4-impl \
     libshim_camera
 
 # DRM
@@ -76,7 +82,9 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.allocator@2.0-impl \
     android.hardware.graphics.allocator@2.0-service \
     android.hardware.graphics.composer@2.1-impl \
-    android.hardware.graphics.mapper@2.0-impl
+    android.hardware.graphics.mapper@2.0-impl \
+    gralloc.exynos3 \
+    libion_exynos
 
 # RenderScript HAL
 PRODUCT_PACKAGES += \
@@ -90,7 +98,7 @@ PRODUCT_PACKAGES += \
 
 # Wifi
 PRODUCT_PACKAGES += \
-    android.hardware.wifi@1.0.legacy \
+    android.hardware.wifi@1.0-service.legacy \
     libwpa_client \
     hostapd \
     wificond \
@@ -100,6 +108,7 @@ PRODUCT_PACKAGES += \
     macloader
 
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/wifi/wpa_supplicant.conf:$(TARGET_COPY_OUT_VENDOR)/etc/wifi/wpa_supplicant.conf \
     $(LOCAL_PATH)/wifi/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_VENDOR)/etc/wifi/wpa_supplicant_overlay.conf \
     $(LOCAL_PATH)/wifi/p2p_supplicant_overlay.conf:$(TARGET_COPY_OUT_VENDOR)/etc/wifi/p2p_supplicant_overlay.conf
 
@@ -164,12 +173,14 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # GNSS HAL
 PRODUCT_PACKAGES += \
-    android.hardware.gnss@1.0-impl
+    android.hardware.gnss@1.0-impl \
+    libgpsd_shim
 
 # Keymaster
 PRODUCT_PACKAGES += \
     android.hardware.keymaster@3.0-impl \
-    android.hardware.keymaster@3.0-service
+    android.hardware.keymaster@3.0-service \
+    keystore.exynos3470
 
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \

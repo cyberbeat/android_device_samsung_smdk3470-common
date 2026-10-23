@@ -1,28 +1,52 @@
-From 8c3e410090949ba067deb4ecc844cbccb25e7e55 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tobias Gunkel <hennymcc@yahoo.de>
 Date: Wed, 20 Sep 2017 17:28:56 +0200
 Subject: [PATCH] audio: add non-const AudioParameter methods for backward
  compatibility
 
+Re-add non-const AudioParameter::get/getInt/getFloat/toString overloads
+(P-era patch 0003) and compile AudioParameter.cpp into libmedia: the
+Samsung audio HAL blob links against libmedia.so and needs the old
+non-const signatures, without them the HAL fails to dlopen and
+audioserver dies in AudioPolicyManager.
+
+Ported to Q: AudioParameter.cpp lives in libmedia_helper, so it must be
+added to libmedia srcs (Android.bp) to export the symbols in libmedia.so.
+
 Change-Id: I28959f4285d217c727afd7dc41cbed9a1af7dc7e
 ---
- .../libaudioclient/include/media/AudioParameter.h  |  4 ++
- media/libmedia/AudioParameter.cpp                  | 47 ++++++++++++++++++++++
- 2 files changed, 51 insertions(+)
+ media/libaudioclient/include/media/AudioParameter.h |  4 ++
+ media/libmedia/Android.bp                          |  2 +
+ media/libmedia/AudioParameter.cpp                   | 47 ++++++++++++++++++++
+ 3 files changed, 53 insertions(+)
+
+diff --git a/media/libmedia/Android.bp b/media/libmedia/Android.bp
+index 1d335901c..000000000 100644
+--- a/media/libmedia/Android.bp
++++ b/media/libmedia/Android.bp
+@@ -224,6 +224,8 @@ cc_library {
+     defaults: [ "libmedia_defaults" ],
+ 
+     srcs: [
++        // kminilte: stock audio HAL blob links against AudioParameter in libmedia
++        "AudioParameter.cpp",
+         "IDataSource.cpp",
+         "BufferingSettings.cpp",
+         "mediaplayer.cpp",
 
 diff --git a/media/libaudioclient/include/media/AudioParameter.h b/media/libaudioclient/include/media/AudioParameter.h
-index 1ace607..ee1804c 100644
+index 24837e338..3ee22b567 100644
 --- a/media/libaudioclient/include/media/AudioParameter.h
 +++ b/media/libaudioclient/include/media/AudioParameter.h
-@@ -76,6 +76,7 @@ public:
-     static const char * const valueListSeparator;
+@@ -90,6 +90,7 @@ public:
+     static const char * const keyReconfigA2dpSupported;
  
      String8 toString() const { return toStringImpl(true); }
 +    String8 toString();
      String8 keysToString() const { return toStringImpl(false); }
  
      status_t add(const String8& key, const String8& value);
-@@ -86,8 +87,11 @@ public:
+@@ -100,8 +101,11 @@ public:
      status_t remove(const String8& key);
  
      status_t get(const String8& key, String8& value) const;
@@ -35,10 +59,10 @@ index 1ace607..ee1804c 100644
      status_t getAt(size_t index, String8& key, String8& value) const;
  
 diff --git a/media/libmedia/AudioParameter.cpp b/media/libmedia/AudioParameter.cpp
-index 65fc70b..249b6e4 100644
+index 1c95e277c..afbba62c6 100644
 --- a/media/libmedia/AudioParameter.cpp
 +++ b/media/libmedia/AudioParameter.cpp
-@@ -99,6 +99,11 @@ String8 AudioParameter::toStringImpl(bool useValues) const
+@@ -105,6 +105,11 @@ String8 AudioParameter::toStringImpl(bool useValues) const
      return str;
  }
  
@@ -50,7 +74,7 @@ index 65fc70b..249b6e4 100644
  status_t AudioParameter::add(const String8& key, const String8& value)
  {
      if (mParameters.indexOfKey(key) < 0) {
-@@ -157,6 +162,16 @@ status_t AudioParameter::get(const String8& key, String8& value) const
+@@ -163,6 +168,16 @@ status_t AudioParameter::get(const String8& key, String8& value) const
      }
  }
  
@@ -67,7 +91,7 @@ index 65fc70b..249b6e4 100644
  status_t AudioParameter::getInt(const String8& key, int& value) const
  {
      String8 str8;
-@@ -173,6 +188,22 @@ status_t AudioParameter::getInt(const String8& key, int& value) const
+@@ -179,6 +194,22 @@ status_t AudioParameter::getInt(const String8& key, int& value) const
      return result;
  }
  
@@ -90,7 +114,7 @@ index 65fc70b..249b6e4 100644
  status_t AudioParameter::getFloat(const String8& key, float& value) const
  {
      String8 str8;
-@@ -189,6 +220,22 @@ status_t AudioParameter::getFloat(const String8& key, float& value) const
+@@ -195,6 +226,22 @@ status_t AudioParameter::getFloat(const String8& key, float& value) const
      return result;
  }
  
@@ -113,6 +137,3 @@ index 65fc70b..249b6e4 100644
  status_t AudioParameter::getAt(size_t index, String8& key) const
  {
      if (mParameters.size() > index) {
--- 
-2.7.4
-

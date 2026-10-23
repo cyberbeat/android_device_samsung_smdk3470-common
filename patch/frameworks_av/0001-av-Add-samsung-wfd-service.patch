@@ -1,28 +1,43 @@
-From 85da5a8db66284461c301b79a5b5beaac28a828e Mon Sep 17 00:00:00 2001
-From: Tobias Gunkel <hennymcc@yahoo.de>
-Date: Wed, 7 Sep 2016 21:40:30 +0200
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: cyberbeat <cyberbeat@gmx.de>
+Date: Thu, 15 Oct 2026 11:55:56 +0200
 Subject: [PATCH] av: Add samsung wfd service
 
-Change-Id: I0e2811215435d3fc9bad43721d0cc2a7fbf4d339
+Add Samsung WFD service classes (IWFDService/WFDService/WFDService-
+Listener, P patch 0001) to libmedia: hwcomposer.exynos3.so requires
+WFDService::instantiate, without it the HWC blob fails to load and
+no frames reach the panel.
+
+Ported to Q: sources now live in media/libmedia (Android.bp).
 ---
- include/media/IWFDService.h           |  70 ++++++++++++++
- include/media/WFDService.h            |  60 ++++++++++++
- include/media/WFDServiceListener.h    |  52 +++++++++++
- media/libmedia/Android.bp             |   3 +
- media/libmedia/IWFDService.cpp        | 166 ++++++++++++++++++++++++++++++++++
- media/libmedia/WFDService.cpp         |  75 +++++++++++++++
- media/libmedia/WFDServiceListener.cpp |  46 ++++++++++
- 7 files changed, 472 insertions(+)
- create mode 100644 include/media/IWFDService.h
- create mode 100644 include/media/WFDService.h
- create mode 100644 include/media/WFDServiceListener.h
- create mode 100644 media/libmedia/IWFDService.cpp
- create mode 100644 media/libmedia/WFDService.cpp
- create mode 100644 media/libmedia/WFDServiceListener.cpp
+ include/media/IWFDService.h           |  70 ++++++++++
+ include/media/WFDService.h            |  60 ++++++++
+ include/media/WFDServiceListener.h    |  52 +++++++
+ media/libmedia/Android.bp             |   4 +
+ media/libmedia/IWFDService.cpp        | 166 +++++++++++++++++++++
+ media/libmedia/WFDService.cpp         |  75 ++++++++++
+ media/libmedia/WFDServiceListener.cpp |  46 ++++++
+ 7 files changed, 473 insertions(+)
+
+diff --git a/media/libmedia/Android.bp b/media/libmedia/Android.bp
+index 1d335901c..000000000 100644
+--- a/media/libmedia/Android.bp
++++ b/media/libmedia/Android.bp
+@@ -260,6 +260,10 @@ cc_library {
+         "StringArray.cpp",
+         "NdkMediaFormatPriv.cpp",
+         "NdkMediaErrorPriv.cpp",
++        // kminilte: stock hwcomposer blob needs WFDService from libmedia
++        "IWFDService.cpp",
++        "WFDService.cpp",
++        "WFDServiceListener.cpp",
+     ],
+ 
+     aidl: {
 
 diff --git a/include/media/IWFDService.h b/include/media/IWFDService.h
 new file mode 100644
-index 0000000..bd29a57
+index 000000000..bd29a57e1
 --- /dev/null
 +++ b/include/media/IWFDService.h
 @@ -0,0 +1,70 @@
@@ -98,7 +113,7 @@ index 0000000..bd29a57
 +#endif // ANDROID_IWFDSERVICE_H
 diff --git a/include/media/WFDService.h b/include/media/WFDService.h
 new file mode 100644
-index 0000000..3ac97ae
+index 000000000..3ac97ae89
 --- /dev/null
 +++ b/include/media/WFDService.h
 @@ -0,0 +1,60 @@
@@ -164,7 +179,7 @@ index 0000000..3ac97ae
 +#endif
 diff --git a/include/media/WFDServiceListener.h b/include/media/WFDServiceListener.h
 new file mode 100644
-index 0000000..cc80549
+index 000000000..cc805495e
 --- /dev/null
 +++ b/include/media/WFDServiceListener.h
 @@ -0,0 +1,52 @@
@@ -220,23 +235,9 @@ index 0000000..cc80549
 +
 +}
 +#endif
-diff --git a/media/libmedia/Android.bp b/media/libmedia/Android.bp
-index a462f3a..776de9b 100644
---- a/media/libmedia/Android.bp
-+++ b/media/libmedia/Android.bp
-@@ -55,6 +55,9 @@ cc_defaults {
-         "omx/1.0/WOmxBufferSource.cpp",
-         "omx/1.0/WOmxNode.cpp",
-         "omx/1.0/WOmxObserver.cpp",
-+        "IWFDService.cpp",
-+        "WFDService.cpp",
-+        "WFDServiceListener.cpp",
-     ],
- 
-     aidl: {
 diff --git a/media/libmedia/IWFDService.cpp b/media/libmedia/IWFDService.cpp
 new file mode 100644
-index 0000000..923c8f6
+index 000000000..923c8f680
 --- /dev/null
 +++ b/media/libmedia/IWFDService.cpp
 @@ -0,0 +1,166 @@
@@ -408,7 +409,7 @@ index 0000000..923c8f6
 +}  // namespace android
 diff --git a/media/libmedia/WFDService.cpp b/media/libmedia/WFDService.cpp
 new file mode 100644
-index 0000000..22709fe
+index 000000000..22709fe8a
 --- /dev/null
 +++ b/media/libmedia/WFDService.cpp
 @@ -0,0 +1,75 @@
@@ -489,7 +490,7 @@ index 0000000..22709fe
 +}
 diff --git a/media/libmedia/WFDServiceListener.cpp b/media/libmedia/WFDServiceListener.cpp
 new file mode 100644
-index 0000000..6d02ec1
+index 000000000..6d02ec159
 --- /dev/null
 +++ b/media/libmedia/WFDServiceListener.cpp
 @@ -0,0 +1,46 @@
@@ -539,6 +540,3 @@ index 0000000..6d02ec1
 +}
 +
 +}
--- 
-2.7.4
-
