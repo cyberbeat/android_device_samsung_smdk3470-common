@@ -201,6 +201,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PACKAGES += \
     libui_shim \
     libExynosOMX_shim \
+    libOMX.Exynos.AVC.Decoder \
+    libOMX.Exynos.AVC.Encoder \
     libstagefrighthw
 
 # USB Accesory
