@@ -197,6 +197,14 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
     ro.zygote.disable_gl_preload=true
 
+# Suppress per-frame log spam: libexynosfimc logs every m2m job at DEBUG;
+# RenderEngine errors on every tiled-YUV (0x107) buffer it cannot EGLImage
+# (Mali blob lacks the tiled layout; SF falls back to FIMC conversion).
+# [EGL-ERROR] cannot be filtered (illegal chars in tag name).
+PRODUCT_PROPERTY_OVERRIDES += \
+    log.tag.libexynosfimc=I \
+    log.tag.RenderEngine=S
+
 # OpenMAX
 PRODUCT_PACKAGES += \
     libui_shim \
